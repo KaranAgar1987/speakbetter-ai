@@ -18,20 +18,22 @@ pip install -r coach/requirements.txt
 cp coach/.env.example coach/.env    # or .env at repo root
 ```
 
-Edit `coach/.env` (or repo-root `.env`) and set:
+Edit `coach/.env` (recommended) or a repository-root `.env` and set:
 
 ```bash
 OPENAI_API_KEY=your-key-here
 OPENAI_MODEL=gpt-4o-mini   # optional
 ```
 
-The CLI loads environment variables from the process environment. Export vars or use a tool such as `dotenv` manually before launch if you keep secrets in `.env`.
+On startup, the CLI **automatically loads** local env files (via `python-dotenv`):
 
-Example:
+| Priority | Source |
+|----------|--------|
+| 1 (highest) | Variables already exported in your shell |
+| 2 | `coach/.env` |
+| 3 | `.env` at the repository root (only keys not set above) |
 
-```bash
-set -a && source coach/.env && set +a   # bash
-```
+You do **not** need to `source` the file before launch. Never commit a real `.env`.
 
 ## Run
 
@@ -39,6 +41,7 @@ From the repository root (so `knowledge/cart.md` can be found):
 
 ```bash
 source coach/.venv/bin/activate
+pip install -r coach/requirements.txt   # if not already installed
 PYTHONPATH=coach python -m speakbetter_coach
 ```
 

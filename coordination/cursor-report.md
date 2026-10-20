@@ -1,72 +1,70 @@
 # Cursor Report
 
-**Task ID:** SB-002  
+**Task ID:** SB-003  
 **Status:** Complete  
 **Branch:** `ai-coordination`  
-**Commit:** `3e91930`  
+**Commit:** (updated after push)  
 **Date:** 2026-10-20
 
 ## Summary
 
-Implemented a minimal **Python CLI** CART coach under `coach/`. The CLI loads `knowledge/cart.md` from the repository root, uses the **OpenAI API** for natural-language coaching (key from environment), supports session commands, labels examples per `cart.md`, and filters score/pass-fail style language. **14 offline unit tests** pass. Research and `knowledge/cart.md` were not modified.
+Added automatic local `.env` loading for the CART CLI using `python-dotenv`. Precedence: **process environment > `coach/.env` > repository-root `.env`**. Updated README and `.env.example`; added five offline tests. No coaching behavior changes; research and `knowledge/cart.md` untouched.
 
 ## Repository areas inspected (before implementation)
 
-| Area | Finding |
-|------|---------|
-| `coordination/next-task.md` | SB-002 scope: Python CLI, OpenAI, tests, push required |
-| `coordination/README.md` | Workflow: inspect, implement, test, report, commit |
-| `knowledge/cart.md` | Full coaching spec: steps, hints, examples, guardrails |
-| `research/philipp-humm/` | Unchanged corpus; out of scope for edits |
-| Pre-SB-002 tree | No existing `coach/` or application code |
-| Git | On `ai-coordination`, pulled latest (`530f0cd`) before work |
+| Area | Notes |
+|------|--------|
+| `coordination/next-task.md` | SB-003 scope: dotenv, tests, docs, push |
+| `coach/README.md` | Previously required manual `source` of `.env` |
+| `coach/speakbetter_coach/__main__.py` | Entry point before env loading |
+| `coach/speakbetter_coach/llm.py` | Reads `OPENAI_API_KEY` / `OPENAI_MODEL` from `os.environ` |
+| `coach/requirements.txt` | OpenAI only before SB-003 |
+| Existing tests | 14 tests in `coach/tests/` |
 
 ## Confirmed findings
 
-- `find_repo_root()` walks parents from the package until `knowledge/cart.md` exists, so launch works from repo root with `PYTHONPATH=coach`.
-- Session flows Context → Adversity → Resolution → Takeaway, then assembly; user types `next` to advance steps after coaching turns.
-- Examples: `example dentist` (SRC-001 paraphrase label); `example a`–`d` (SpeakBetter AI labels).
-- `guardrails.py` detects/filters forbidden validation/score phrasing in coach output.
+- New module `coach/speakbetter_coach/env_config.py` with `load_local_env(repo_root=None)`.
+- `__main__.py` calls `load_local_env()` before constructing `OpenAIChatCompleter`.
+- Missing key still raises `RuntimeError` without echoing secret values.
 
 ## Assumptions and unknowns
 
 | Item | Note |
 |------|------|
-| `.env` loading | Not auto-loaded; README documents `source coach/.env` — owner may add `python-dotenv` later |
-| Live API manual test | Not run in this environment (no API key); automated tests use `ScriptCompleter` mock |
-| `next` command | Added to advance steps; documented in `coach/README.md` (required for multi-turn per step) |
+| Live CLI with real `.env` | Not run in agent (no API key); behavior covered by unit tests |
+| Both env files present | Documented precedence; tested for duplicate keys |
 
 ## Files changed
 
 | Path | Change |
 |------|--------|
-| `coach/` | New package, README, requirements, `.env.example`, tests |
-| `.gitignore` | `.env`, venv, `__pycache__` |
+| `coach/speakbetter_coach/env_config.py` | New — load `.env` files |
+| `coach/speakbetter_coach/__main__.py` | Call `load_local_env()` at startup |
+| `coach/requirements.txt` | Add `python-dotenv` |
+| `coach/README.md` | Auto-load docs and precedence table |
+| `coach/.env.example` | Clarify auto-load |
+| `coach/tests/test_env_config.py` | New offline tests |
 | `coordination/cursor-report.md` | This report |
-| `coordination/project-state.md` | Post-SB-002 state |
-| `coordination/decisions.md` | D-005 OpenAI CLI |
+| `coordination/project-state.md` | Post-SB-003 state |
 
-**Not changed:** `knowledge/cart.md`, `research/philipp-humm/**`, `coordination/next-task.md`.
+**Not changed:** `knowledge/cart.md`, `research/philipp-humm/`, `coordination/next-task.md`, CART session logic.
 
 ## Validation
 
 | Command | Result |
 |---------|--------|
-| `PYTHONPATH=coach python -m unittest discover -s coach/tests -v` | **OK** — 14 tests in ~0.001s |
-| `git branch --show-current` | `ai-coordination` |
-| Manual OpenAI CLI session | **Not run** — no API key in agent environment |
+| `pip install -r coach/requirements.txt` | OK |
+| `PYTHONPATH=coach python -m unittest discover -s coach/tests -v` | **OK — 19 tests** |
 
 ## Risks or blockers
 
-- Users must export `OPENAI_API_KEY` before run; failure mode is a clear error from `OpenAIChatCompleter`.
-- LLM may occasionally emit score-like language; mitigated by `filter_forbidden_phrases` (not a guarantee for all phrasing).
+- None identified. Users must still `pip install` after pull to get `python-dotenv`.
 
 ## Recommended next step
 
-- Owner: manual CLI smoke test with API key; review pushed commit.
-- ChatGPT: define **SB-003** (e.g. optional `python-dotenv`, Hindi hints flag, or save draft to file) in `next-task.md`.
+- ChatGPT: define SB-004 in `next-task.md` (e.g. optional draft export, Hindi hints, or smoke-test script).
 
 ## Git
 
-- **Push:** Succeeded to `origin/ai-coordination` (`530f0cd..3e91930`).
-- **Commit URL:** https://github.com/KaranAgar1987/speakbetter-ai/commit/3e91930
+- **Push status:** (filled after push)
+- **Commit URL:** (filled after push)
