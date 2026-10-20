@@ -3,7 +3,7 @@
 **Task ID:** SB-007  
 **Status:** Complete  
 **Branch:** `feature/voice-coach-improvements`  
-**Commit:** `4808717`  
+**Commit:** `a8bd69e`  
 **Date:** 2026-10-20
 
 ## Summary
@@ -97,7 +97,7 @@ Open http://127.0.0.1:8787/ → Disconnect/Connect → speak; watch agent logs f
 ## Git
 
 - **Push status:** Verified after `git push origin feature/voice-coach-improvements`
-- **Commit URL:** https://github.com/KaranAgar1987/speakbetter-ai/commit/4808717
+- **Commit URL:** https://github.com/KaranAgar1987/speakbetter-ai/commit/a8bd69e343b7e6fc12dc20a22697cc962296acf7
 
 ## Recommended next step
 
