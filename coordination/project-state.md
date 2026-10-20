@@ -16,11 +16,13 @@ Use the existing CART methodology:
 
 Preserve the repository's existing research and knowledge documents; inspect and reuse them rather than replacing them.
 
-## Known state before the first Cursor inspection
+## Known state (confirmed by Cursor SB-001, 2026-10-20)
 - Repository: `KaranAgar1987/speakbetter-ai`
-- The project contains research/knowledge documentation and CART methodology material.
-- The minimal text-based coach has been proposed, but the first implementation has not yet been verified in this coordination workflow.
-- The exact existing file structure and any current application code must be confirmed by Cursor in task SB-001.
+- **Branches:** `main` at initial commit (`18ece73`); `ai-coordination` adds `coordination/` (five files) on top of the same research/knowledge tree.
+- **Tracked content:** `knowledge/` (`cart.md` + README), `research/philipp-humm/` (catalog, discovery log, methodology, 14 article + 10 video extract markdown files), `coordination/`, `.gitignore` (ignores `.tools/`).
+- **Primary coach specification:** `knowledge/cart.md` (verified CART from SRC-001/SRC-002; coach rules, gap diagnostics, examples with attribution).
+- **Application code:** None (no package manifest, no `src/`/`app/`/`coach/`, no tests or CI).
+- **Minimal text-based coach:** Not implemented; proposed as next milestone after ChatGPT updates `next-task.md`.
 
 ## Current workflow state
 - The `ai-coordination` branch is dedicated to coordination and initial handoff.
