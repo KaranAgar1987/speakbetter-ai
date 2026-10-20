@@ -1,1 +1,9 @@
 .tools/
+.env
+coach/.env
+!coach/.env.example
+__pycache__/
+*.py[cod]
+.venv/
+coach/.venv/
+.pytest_cache/

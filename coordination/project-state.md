@@ -2,33 +2,27 @@
 
 **Last updated:** 2026-10-20  
 **Coordination branch:** `ai-coordination`  
-**Current milestone:** Implement the first minimal text-based CART coach and validate the ChatGPT ↔ Cursor handoff.
+**Current milestone:** First minimal text-based CART coach (SB-002) implemented and under review.
 
 ## Product direction
-SpeakBetter AI is intended to help users improve workplace communication and spoken responses. The initial product is a minimal **text-based CART coach**, not a complex architecture or video/audio product.
+SpeakBetter AI helps users improve workplace communication. The initial product is a minimal **text-based CART coach** (CLI), not voice/video or a large application stack.
 
 ## Core method
-Use the existing CART methodology:
-1. **Context** — establish the situation and relevant background.
-2. **Adversity** — identify the challenge, friction, or difficulty.
-3. **Resolution** — explain the action taken or response chosen.
-4. **Takeaway** — capture the learning and what to do differently next time.
+CART: **Context → Adversity → Resolution → Takeaway**, per `knowledge/cart.md` (verified from SRC-001, SRC-002).
 
-Preserve the repository's existing research and knowledge documents; inspect and reuse them rather than replacing them.
-
-## Known state (SB-001 inspection, 2026-10-20)
+## Known state (after SB-002)
 - Repository: `KaranAgar1987/speakbetter-ai`
-- `main` remains at the initial research/knowledge commit; coordination and next-task changes are isolated on `ai-coordination`.
-- Tracked content includes `knowledge/cart.md`, `research/philipp-humm/`, and `coordination/`.
-- Primary coach specification: `knowledge/cart.md` (CART steps, coach rules, gap diagnostics, examples and attribution boundaries).
-- Before SB-002: no application code, package manifest, tests, or CI existed.
-- SB-001 report is available in `coordination/cursor-report.md`.
+- `main`: initial research/knowledge commit only; product work on `ai-coordination`.
+- **`coach/`** — Python CLI package `speakbetter_coach`: loads `knowledge/cart.md` at runtime, OpenAI-backed coaching, commands `hint` / `example` / `next` / `restart` / `quit`, guardrails against score/pass-fail language.
+- **`knowledge/cart.md`** — unchanged; primary product spec.
+- **`research/philipp-humm/`** — unchanged.
+- **`coordination/`** — handoff files; latest task report in `cursor-report.md`.
+- Tests: `PYTHONPATH=coach python -m unittest discover -s coach/tests -v` (14 tests, offline).
 
 ## Current workflow state
-- `coordination/next-task.md` now defines **SB-002**, the first implementation task: a small local Python CLI coach using `knowledge/cart.md`.
-- Cursor must work only on `ai-coordination`, preserve unrelated changes, implement the task, run offline tests, update the report and this state file, commit, push to `origin/ai-coordination`, and report the verified commit SHA/link.
-- Do not merge to `main`; do not assume a feature is implemented until repository evidence and validation confirm it.
-- GitHub file changes do not automatically start Cursor; the owner must run the Cursor Agent command for each handoff.
+- SB-002 complete pending owner review of pushed commit and report.
+- Do not merge to `main` without explicit owner decision.
+- Next task will be written by ChatGPT in `next-task.md` after report review.
 
 ## Next milestone
-Complete SB-002, review the pushed commit and test report, then decide the next smallest step.
+Review SB-002 commit, run CLI manually with API key, then define the next smallest improvement (e.g. env loading, Hindi coach prompts, or session export).
