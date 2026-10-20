@@ -1,4 +1,4 @@
-# SpeakBetter AI — LiveKit voice prototype (SB-006)
+# SpeakBetter AI — LiveKit voice prototype (SB-006 / SB-007)
 
 Local browser voice session for the **same CART coach** as the text CLI (`CoachApp` + `knowledge/cart.md`). Not deployed to cloud in this milestone.
 
@@ -30,6 +30,19 @@ Copy `coach/.env.example` → `coach/.env`. Required for voice:
 | `VOICE_MIN_ENDPOINTING_DELAY` | Optional; default `0.8` seconds |
 | `VOICE_MAX_ENDPOINTING_DELAY` | Optional; default `6.0` seconds |
 | `VOICE_HTTP_PORT` | Optional; token/UI server port (default `8787`) |
+| `VOICE_LLM_MAX_TURNS` | Optional; conversation turns sent to chat model (default `8`) |
+| `VOICE_LLM_MAX_TOKENS` | Optional; cap spoken reply length (default `220`) |
+| `OPENAI_TTS_MODEL` | Optional; default `gpt-4o-mini-tts` |
+| `OPENAI_TTS_SPEED` | Optional; default `1.0` |
+| `OPENAI_TTS_INSTRUCTIONS` | Optional; coaching delivery style for TTS |
+| `OPENAI_STT_MODEL` | Optional; default `gpt-4o-mini-transcribe` |
+| `VOICE_WAIT_FULL_PLAYOUT` | Optional; wait for TTS finish before next turn (default `true`) |
+
+## SB-007 improvements (latency, coaching, voice)
+
+- **Latency:** Per-turn timing logs (`voice turn timings_ms=…` in the agent worker). LLM context is trimmed to recent turns; `VOICE_LLM_MAX_TOKENS` limits reply length. Baseline script: `PYTHONPATH=coach python coach/scripts/voice_latency_baseline.py` (offline ScriptCompleter, no API).
+- **Coaching:** Conversational voice adds scenario-aware hints, draft summaries, and anti-repeat guidance while still using `CoachApp` + `knowledge/cart.md`.
+- **Voice quality:** TTS uses `gpt-4o-mini-tts` with configurable voice, speed, and delivery instructions.
 
 ## macOS setup (repository root)
 

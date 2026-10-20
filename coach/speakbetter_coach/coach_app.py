@@ -19,6 +19,11 @@ from speakbetter_coach.story_save import (
     write_story_file,
 )
 from speakbetter_coach.llm import ChatCompleter
+from speakbetter_coach.voice_coaching import (
+    build_voice_turn_extra,
+    spoken_reply_limit,
+    trim_voice_messages,
+)
 
 VOICE_COACHING_TRIGGERS = (
     "hint",
@@ -84,13 +89,23 @@ class CoachApp:
 
     def _coach_reply(self, user_text: str) -> str:
         step = self.session.current_cart_step()
-        extra = ""
-        if step:
+        if self.voice_mode and self.voice_conversational and step:
+            extra = build_voice_turn_extra(
+                self.session, user_text, step_instruction(step)
+            )
+        elif step:
             extra = f"\n\n[Current CART step: {step.label}. {step_instruction(step)}]"
+        else:
+            extra = ""
         self.session.chat_messages.append(
             {"role": "user", "content": user_text + extra}
         )
-        reply = self.completer.complete(self.session.chat_messages)
+        messages = self.session.chat_messages
+        max_tokens = None
+        if self.voice_mode and self.voice_conversational:
+            messages = trim_voice_messages(messages)
+            max_tokens = spoken_reply_limit()
+        reply = self.completer.complete(messages, max_tokens=max_tokens)
         return self._append_assistant(reply)
 
     def _user_wants_coaching(self, lower: str) -> bool:

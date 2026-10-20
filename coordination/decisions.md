@@ -33,5 +33,11 @@
 **Rationale:** Validates real-time voice without replacing the minimal text coach or deploying to cloud in SB-006.  
 **Consequence:** Voice requires extra dependencies (`requirements-voice.txt`), LiveKit server credentials, and manual smoke testing; CLI-only installs remain supported via `requirements.txt`.
 
+## D-007 — Voice coach improvements on a feature branch (SB-007)
+**Status:** Accepted  
+**Decision:** Ship voice latency, adaptive coaching, and TTS/STT tuning on `feature/voice-coach-improvements` without merging to `main` in the same task; keep a single `CoachApp` + `knowledge/cart.md` brain with voice-specific context trimming and prompts.  
+**Rationale:** Improves the live prototype while preserving the text CLI and CART spec; feature branch isolates iteration from `main`.  
+**Consequence:** Voice env surface grows (`VOICE_LLM_*`, TTS/STT knobs); owners validate latency and audio quality in real sessions.
+
 ## How to amend decisions
 Add a new numbered decision with status, decision, rationale, and consequences. Do not silently rewrite an accepted decision; mark it superseded if the direction changes.

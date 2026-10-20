@@ -5,7 +5,9 @@ from typing import Protocol
 
 
 class ChatCompleter(Protocol):
-    def complete(self, messages: list[dict[str, str]]) -> str: ...
+    def complete(
+        self, messages: list[dict[str, str]], *, max_tokens: int | None = None
+    ) -> str: ...
 
 
 class OpenAIChatCompleter:
@@ -17,15 +19,20 @@ class OpenAIChatCompleter:
                 "OPENAI_API_KEY is not set. Copy coach/.env.example to .env and add your key."
             )
 
-    def complete(self, messages: list[dict[str, str]]) -> str:
+    def complete(
+        self, messages: list[dict[str, str]], *, max_tokens: int | None = None
+    ) -> str:
         from openai import OpenAI
 
         client = OpenAI(api_key=self.api_key)
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=0.6,
-        )
+        kwargs: dict = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": 0.6,
+        }
+        if max_tokens is not None:
+            kwargs["max_tokens"] = max_tokens
+        response = client.chat.completions.create(**kwargs)
         content = response.choices[0].message.content
         return (content or "").strip()
 
@@ -33,7 +40,9 @@ class OpenAIChatCompleter:
 class ScriptCompleter:
     """Offline stub for tests: echoes a safe coaching line."""
 
-    def complete(self, messages: list[dict[str, str]]) -> str:
+    def complete(
+        self, messages: list[dict[str, str]], *, max_tokens: int | None = None
+    ) -> str:
         last_user = next(
             (m["content"] for m in reversed(messages) if m.get("role") == "user"),
             "",

@@ -1,71 +1,104 @@
 # Cursor Report
 
-**Task ID:** SB-006  
+**Task ID:** SB-007  
 **Status:** Complete  
-**Branch:** `ai-coordination`  
-**Commit:** `5a2abf1`  
+**Branch:** `feature/voice-coach-improvements`  
+**Commit:** `4808717`  
 **Date:** 2026-10-20
 
 ## Summary
 
-Delivered a **local LiveKit voice prototype** that reuses **`CoachApp`** and `knowledge/cart.md`: OpenAI STT/TTS through LiveKit Agents, VAD/endpointing knobs, voice-mode turn-taking (ack without LLM unless user asks for coaching), token server + minimal browser UI. Text CLI preserved; shared logic moved to `coach_app.py`. **38** offline tests pass. **Live browser-to-agent voice not tested** here (credentials/services not run end-to-end).
+Improved the integrated LiveKit voice path across **latency instrumentation**, **adaptive CART coaching context**, **TTS/STT configuration**, and **offline regression tests**—without a second coach brain or changes to `knowledge/cart.md`. Text CLI preserved.
 
-## Repository areas inspected
+## Baseline diagnosis (Phase 1)
 
-| Area | Notes |
-|------|--------|
-| `coach/speakbetter_coach/cli.py` | Refactored to use `coach_app.py` |
-| `coach/speakbetter_coach/coach_app.py` | Shared CART session; `voice_mode` flag |
-| `coordination/next-task.md` | SB-006 scope |
-| Existing 32 tests | Still pass after refactor |
+| Stage | Evidence |
+|-------|----------|
+| Endpointing | Defaults `VOICE_MIN_ENDPOINTING_DELAY=0.8s`, `VOICE_MAX_ENDPOINTING_DELAY=6.0s` (unchanged; still owner-tunable). |
+| STT → coach | Agent logs `user turn:` when STT completes; prior sessions showed multi-second `transcript_delay` from LiveKit/OpenAI (not re-measured live this run). |
+| Coach / LLM | Full `knowledge/cart.md` (~12KB) remains in system prompt every turn; long chat history increased token load. **Hypothesis (structural):** reply latency dominated by chat completion + TTS after STT, not Python glue code. |
+| TTS / playback | `session.say()` + optional `wait_for_playout`; LiveKit logs `flush audio emitter due to slow audio generation` under load in prior sessions. |
 
-## Architecture choices
+**Measurement method (offline):** `PYTHONPATH=coach python coach/scripts/voice_latency_baseline.py` — ScriptCompleter, no network; after 10 turns, `handle_line` avg **0.03 ms** (Python-only; not representative of OpenAI latency).
 
-| Layer | Choice |
-|-------|--------|
-| Transport | LiveKit (local Docker or Cloud) |
-| STT / TTS | `livekit-plugins-openai` |
-| VAD / endpointing | Silero VAD; `VOICE_MIN/MAX_ENDPOINTING_DELAY` (defaults 0.8s / 6.0s) |
-| Coaching brain | Existing `CoachApp` + `OpenAIChatCompleter` (not a second prompt) |
-| Browser auth | `token_server.py` issues JWT; secret server-side only |
-| UI | `coach/voice_web/index.html` (minimal) |
+**Live before/after:** **Not obtained** — no controlled A/B voice session in this environment.
+
+## Changes by area
+
+### Latency (Phase 2)
+- `trim_voice_messages()` + `VOICE_LLM_MAX_TURNS` (default 8) limit dialogue sent to the chat model.
+- `VOICE_LLM_MAX_TOKENS` (default 220) caps generation length for spoken replies.
+- `TurnTimer` logs `voice turn timings_ms` (`stt_done`, `coach_done`, `tts_scheduled`, `playout_done`) in the agent worker.
+- `asyncio.to_thread` retained for `handle_line` so the agent event loop is not blocked.
+
+### Adaptive coaching (Phase 3)
+- `build_voice_turn_extra()` adds step focus, draft summary, inferred scenario (interview, presentation, etc.), anti-repeat of last coach line, and spoken-length guidance.
+- `VOICE_CONVERSATIONAL_APPENDIX` updated for scenario adaptation and no redundant questions.
+- Still routes through **`CoachApp`** and explicit commands (`next`, `hint`, `save`, …).
+
+### Voice quality (Phase 4)
+- `create_openai_tts()` — `gpt-4o-mini-tts`, `OPENAI_TTS_VOICE`, `OPENAI_TTS_SPEED`, `OPENAI_TTS_INSTRUCTIONS` (warm coach delivery).
+- `create_openai_stt()` — `OPENAI_STT_MODEL` (default `gpt-4o-mini-transcribe`).
+- **Listening verification:** **Not performed** in this run (configuration change only).
+
+### Reliability / testing (Phase 5)
+- New tests: `test_voice_coaching.py`, `test_voice_timing.py`.
+- Existing dispatch, tokens, coach mode, and CLI tests preserved.
 
 ## Files changed (high level)
 
 | Path | Purpose |
 |------|---------|
-| `coach/speakbetter_coach/coach_app.py` | Shared coach |
-| `coach/speakbetter_coach/voice/*` | Agent, config, tokens, token server |
-| `coach/voice_web/index.html` | Browser client |
-| `coach/VOICE.md` | Setup, env vars, architecture |
-| `coach/requirements-voice.txt` | LiveKit + plugins |
-| `coach/.env.example`, `coach/README.md` | Voice docs |
-| `coach/tests/test_voice_*.py` | Config, tokens, voice_mode |
-| `coordination/decisions.md` | D-006 |
-| `coordination/project-state.md`, this report | Handoff |
-
-**Not changed:** `knowledge/cart.md`, `research/philipp-humm/`.
+| `coach/speakbetter_coach/voice_coaching.py` | Trim context, adaptive turn metadata |
+| `coach/speakbetter_coach/voice/timing.py` | Per-turn timing |
+| `coach/speakbetter_coach/voice/speech_providers.py` | STT/TTS from env |
+| `coach/speakbetter_coach/voice/agent.py` | Timing + providers |
+| `coach/speakbetter_coach/coach_app.py` | Voice-aware `_coach_reply` |
+| `coach/speakbetter_coach/llm.py` | Optional `max_tokens` |
+| `coach/speakbetter_coach/prompts.py` | Stronger voice appendix |
+| `coach/scripts/voice_latency_baseline.py` | Offline baseline script |
+| `coach/VOICE.md`, `coach/.env.example` | SB-007 env docs |
+| `coach/tests/test_voice_*.py` | Regression coverage |
+| `coordination/*` | Handoff |
 
 ## Validation
 
-| Command | Result |
-|---------|--------|
-| `PYTHONPATH=coach python -m unittest discover -s coach/tests -v` | **OK — 38 tests** |
-| LiveKit + browser voice E2E | **Not tested** (no LiveKit/OpenAI session in agent run) |
-| `CARTVoiceAgent` import without `OPENAI_API_KEY` | Fails at STT init (expected; worker needs keys) |
+| Check | Result |
+|-------|--------|
+| `PYTHONPATH=coach python -m unittest discover -s coach/tests -v` | **OK — 50 tests** |
+| `PYTHONPATH=coach python coach/scripts/voice_latency_baseline.py` | **OK** (avg 0.03 ms, offline stub) |
+| LiveKit Docker `:7880` | **Reachable** (`Up` during run) |
+| Token server `GET /health` | **200** during run |
+| Browser microphone → spoken coach reply (subjective) | **Not tested** |
 
-## Assumptions and risks
+## macOS owner test steps
 
-- `on_user_turn_completed` + `llm=None` depends on LiveKit Agents 1.8 behavior; owner must verify no duplicate/spurious LLM replies in live session.
-- LiveKit client CDN global is `LivekitClient` in `index.html`; verify in browser if connect fails.
-- Voice tests require `pip install -r coach/requirements-voice.txt` (imports `livekit`).
+```bash
+# Terminal 1 — LiveKit
+docker run --rm -p 7880:7880 -p 7881:7881 -e LIVEKIT_KEYS="devkey: secret" livekit/livekit-server --dev
 
-## Recommended next step
+# Terminal 2 — token UI
+source coach/.venv/bin/activate
+PYTHONPATH=coach python -m speakbetter_coach.voice.token_server
 
-- Owner: three-process test per `coach/VOICE.md` (LiveKit server, token server, agent worker).
-- ChatGPT: SB-007 (e.g. live test findings, turn-tuning, or merge strategy).
+# Terminal 3 — agent
+source coach/.venv/bin/activate
+PYTHONPATH=coach python -m speakbetter_coach.voice.agent dev
+```
+
+Open http://127.0.0.1:8787/ → Disconnect/Connect → speak; watch agent logs for `voice turn timings_ms`.
+
+## Limitations and risks
+
+- Latency improvements are **partial** without live A/B; full CART markdown still in every system prompt.
+- Anti-repeat and scenario hints depend on LLM following bracketed metadata.
+- TTS quality claims require owner listening tests.
 
 ## Git
 
-- **Push status:** Verified — `5a2abf1` matches `origin/ai-coordination` (`git ls-remote`).
-- **Commit URL:** https://github.com/KaranAgar1987/speakbetter-ai/commit/5a2abf19da52669fd3e19d84e1571a8a63f16376
+- **Push status:** Verified after `git push origin feature/voice-coach-improvements`
+- **Commit URL:** https://github.com/KaranAgar1987/speakbetter-ai/commit/4808717
+
+## Recommended next step
+
+Owner: live session on `feature/voice-coach-improvements`, compare `voice turn timings_ms` and subjective naturalness; open PR to `main` if satisfied.

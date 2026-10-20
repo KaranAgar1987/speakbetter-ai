@@ -14,7 +14,7 @@ from livekit.agents import (
     WorkerOptions,
     cli,
 )
-from livekit.plugins import openai, silero
+from livekit.plugins import silero
 
 from speakbetter_coach.coach_app import CoachApp
 from speakbetter_coach.env_config import load_local_env
@@ -22,8 +22,22 @@ from speakbetter_coach.knowledge import find_repo_root, load_cart_markdown
 from speakbetter_coach.llm import OpenAIChatCompleter
 from speakbetter_coach.voice.config import load_livekit_config
 from speakbetter_coach.voice.messages import user_message_text
+from speakbetter_coach.voice.speech_providers import create_openai_stt, create_openai_tts
+from speakbetter_coach.voice.timing import TurnTimer
 
 logger = logging.getLogger("speakbetter-cart-voice")
+
+
+def _endpointing_delay(name: str, default: str) -> float:
+    return float(os.environ.get(name, default))
+
+
+def _wait_for_playout_enabled() -> bool:
+    return os.environ.get("VOICE_WAIT_FULL_PLAYOUT", "true").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
 
 
 class CARTVoiceAgent(Agent):
@@ -33,11 +47,11 @@ class CARTVoiceAgent(Agent):
         self.coach = coach
         super().__init__(
             instructions=coach.system_message,
-            stt=openai.STT(),
-            tts=openai.TTS(voice=os.environ.get("OPENAI_TTS_VOICE", "ash")),
+            stt=create_openai_stt(),
+            tts=create_openai_tts(),
             turn_detection="vad",
-            min_endpointing_delay=float(os.environ.get("VOICE_MIN_ENDPOINTING_DELAY", "0.8")),
-            max_endpointing_delay=float(os.environ.get("VOICE_MAX_ENDPOINTING_DELAY", "6.0")),
+            min_endpointing_delay=_endpointing_delay("VOICE_MIN_ENDPOINTING_DELAY", "0.8"),
+            max_endpointing_delay=_endpointing_delay("VOICE_MAX_ENDPOINTING_DELAY", "6.0"),
             allow_interruptions=True,
             llm=None,
         )
@@ -46,12 +60,15 @@ class CARTVoiceAgent(Agent):
         opening = self.coach.start()
         logger.info("speaking opening (%d chars)", len(opening))
         handle = self.session.say(opening, allow_interruptions=True)
-        await handle.wait_for_playout()
+        if _wait_for_playout_enabled():
+            await handle.wait_for_playout()
 
     async def on_user_turn_completed(self, turn_ctx, new_message) -> None:
+        timer = TurnTimer()
         text = user_message_text(new_message)
         if text:
             logger.info("user turn: %s", text[:200])
+        timer.mark("stt_done")
         try:
             reply, should_exit = await asyncio.to_thread(self.coach.handle_line, text)
         except Exception:
@@ -61,10 +78,15 @@ class CARTVoiceAgent(Agent):
                 "Please try again in a moment."
             )
             should_exit = False
+        timer.mark("coach_done")
         if reply:
             logger.info("speaking reply (%d chars)", len(reply))
             handle = self.session.say(reply, allow_interruptions=True)
-            await handle.wait_for_playout()
+            timer.mark("tts_scheduled")
+            if _wait_for_playout_enabled():
+                await handle.wait_for_playout()
+                timer.mark("playout_done")
+            logger.info("voice turn timings_ms=%s", timer.deltas_ms())
         if should_exit:
             await self.session.shutdown()
 
@@ -95,8 +117,8 @@ async def entrypoint(ctx: JobContext) -> None:
 
     session = AgentSession(
         vad=ctx.proc.userdata["vad"],
-        min_endpointing_delay=float(os.environ.get("VOICE_MIN_ENDPOINTING_DELAY", "0.8")),
-        max_endpointing_delay=float(os.environ.get("VOICE_MAX_ENDPOINTING_DELAY", "6.0")),
+        min_endpointing_delay=_endpointing_delay("VOICE_MIN_ENDPOINTING_DELAY", "0.8"),
+        max_endpointing_delay=_endpointing_delay("VOICE_MAX_ENDPOINTING_DELAY", "6.0"),
     )
     agent = CARTVoiceAgent(coach)
     await session.start(agent=agent, room=ctx.room)
