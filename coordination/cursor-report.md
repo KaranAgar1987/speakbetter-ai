@@ -3,7 +3,7 @@
 **Task ID:** SB-006  
 **Status:** Complete  
 **Branch:** `ai-coordination`  
-**Commit:** (see Git section after push)  
+**Commit:** `5a2abf1`  
 **Date:** 2026-10-20
 
 ## Summary
@@ -67,5 +67,5 @@ Delivered a **local LiveKit voice prototype** that reuses **`CoachApp`** and `kn
 
 ## Git
 
-- **Push status:** (after push)
-- **Commit URL:** (after push)
+- **Push status:** Verified — `5a2abf1` matches `origin/ai-coordination` (`git ls-remote`).
+- **Commit URL:** https://github.com/KaranAgar1987/speakbetter-ai/commit/5a2abf19da52669fd3e19d84e1571a8a63f16376
