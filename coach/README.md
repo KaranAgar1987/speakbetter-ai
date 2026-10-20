@@ -77,6 +77,10 @@ PYTHONPATH=coach python -m unittest discover -s coach/tests -v
 
 Tests mock the language model and do not call the network.
 
+## Voice prototype (optional)
+
+LiveKit browser voice uses the same `CoachApp` logic. Install voice dependencies and follow **[VOICE.md](./VOICE.md)**. The text CLI does not require LiveKit.
+
 ## Scope
 
 - Does not modify `research/philipp-humm/` or `knowledge/cart.md`.

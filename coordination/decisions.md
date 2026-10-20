@@ -27,5 +27,11 @@
 **Rationale:** Smallest path to useful follow-ups while keeping automated tests offline via mocks.  
 **Consequence:** Live coaching requires a network and API key; tests must not call the API.
 
+## D-006 — LiveKit local voice prototype (SB-006)
+**Status:** Accepted  
+**Decision:** Add an optional LiveKit-based voice path (OpenAI STT/TTS + existing `CoachApp` / `knowledge/cart.md`) alongside the text CLI; issue room tokens from a local server so the browser never receives `LIVEKIT_API_SECRET`.  
+**Rationale:** Validates real-time voice without replacing the minimal text coach or deploying to cloud in SB-006.  
+**Consequence:** Voice requires extra dependencies (`requirements-voice.txt`), LiveKit server credentials, and manual smoke testing; CLI-only installs remain supported via `requirements.txt`.
+
 ## How to amend decisions
 Add a new numbered decision with status, decision, rationale, and consequences. Do not silently rewrite an accepted decision; mark it superseded if the direction changes.

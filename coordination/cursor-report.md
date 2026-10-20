@@ -1,69 +1,71 @@
 # Cursor Report
 
-**Task ID:** SB-005  
+**Task ID:** SB-006  
 **Status:** Complete  
 **Branch:** `ai-coordination`  
-**Commit:** `5accb7b`  
+**Commit:** (see Git section after push)  
 **Date:** 2026-10-20
 
 ## Summary
 
-Smoke-test preparation and CLI hardening without new product features. Fixed `save` command detection (`saved` no longer triggers save). Save failures prefix **Save failed.**; file write errors handled cleanly. Entry point catches missing API key and missing `knowledge/cart.md`. Added `coach/SMOKE-TEST.md` and tightened macOS README. **32** offline tests pass. **Live API session not tested** (no key in agent environment).
+Delivered a **local LiveKit voice prototype** that reuses **`CoachApp`** and `knowledge/cart.md`: OpenAI STT/TTS through LiveKit Agents, VAD/endpointing knobs, voice-mode turn-taking (ack without LLM unless user asks for coaching), token server + minimal browser UI. Text CLI preserved; shared logic moved to `coach_app.py`. **38** offline tests pass. **Live browser-to-agent voice not tested** here (credentials/services not run end-to-end).
 
 ## Repository areas inspected
 
-| Area | Finding |
+| Area | Notes |
+|------|--------|
+| `coach/speakbetter_coach/cli.py` | Refactored to use `coach_app.py` |
+| `coach/speakbetter_coach/coach_app.py` | Shared CART session; `voice_mode` flag |
+| `coordination/next-task.md` | SB-006 scope |
+| Existing 32 tests | Still pass after refactor |
+
+## Architecture choices
+
+| Layer | Choice |
+|-------|--------|
+| Transport | LiveKit (local Docker or Cloud) |
+| STT / TTS | `livekit-plugins-openai` |
+| VAD / endpointing | Silero VAD; `VOICE_MIN/MAX_ENDPOINTING_DELAY` (defaults 0.8s / 6.0s) |
+| Coaching brain | Existing `CoachApp` + `OpenAIChatCompleter` (not a second prompt) |
+| Browser auth | `token_server.py` issues JWT; secret server-side only |
+| UI | `coach/voice_web/index.html` (minimal) |
+
+## Files changed (high level)
+
+| Path | Purpose |
 |------|---------|
-| User path setup → run → CART steps → `next` → assembly → `save` → `quit` | Documented in SMOKE-TEST.md |
-| `cli.py` | `startswith("save")` matched unintended inputs — fixed |
-| `story_save.py` | Success/failure tuple; added `is_save_command` |
-| `__main__.py` | Uncaught RuntimeError could traceback — fixed |
-| `coach/README.md` | Updated macOS flow |
+| `coach/speakbetter_coach/coach_app.py` | Shared coach |
+| `coach/speakbetter_coach/voice/*` | Agent, config, tokens, token server |
+| `coach/voice_web/index.html` | Browser client |
+| `coach/VOICE.md` | Setup, env vars, architecture |
+| `coach/requirements-voice.txt` | LiveKit + plugins |
+| `coach/.env.example`, `coach/README.md` | Voice docs |
+| `coach/tests/test_voice_*.py` | Config, tokens, voice_mode |
+| `coordination/decisions.md` | D-006 |
+| `coordination/project-state.md`, this report | Handoff |
 
-## Confirmed findings
-
-- `is_save_command()` requires first token exactly `save`.
-- `parse_save_command` returns `None` for multiple path tokens.
-- Duplicate `save` returns message containing `Save failed.` and `already exists`.
-
-## Assumptions and unknowns
-
-| Item | Status |
-|------|--------|
-| Live API E2E | **Not tested** — owner uses SMOKE-TEST.md with local `coach/.env` |
-| Shell `env -u OPENAI_API_KEY python -m speakbetter_coach` | May still load key from `coach/.env` if present on disk |
-
-## Files changed
-
-| Path | Change |
-|------|--------|
-| `coach/SMOKE-TEST.md` | New manual checklist |
-| `coach/README.md` | macOS setup, smoke test link, error note |
-| `coach/speakbetter_coach/story_save.py` | `is_save_command`, write errors, parse guard |
-| `coach/speakbetter_coach/cli.py` | Exact save match; failure prefix |
-| `coach/speakbetter_coach/__main__.py` | Friendly exit on config errors |
-| `coach/tests/test_story_save.py` | Edge-case tests |
-| `coach/tests/test_main.py` | Entrypoint tests |
-| `coordination/cursor-report.md` | This report |
-| `coordination/project-state.md` | Post-SB-005 state |
+**Not changed:** `knowledge/cart.md`, `research/philipp-humm/`.
 
 ## Validation
 
 | Command | Result |
 |---------|--------|
-| `PYTHONPATH=coach python -m unittest discover -s coach/tests -v` | **OK — 32 tests** |
-| Live OpenAI coaching session | **Not run** (no API key) |
+| `PYTHONPATH=coach python -m unittest discover -s coach/tests -v` | **OK — 38 tests** |
+| LiveKit + browser voice E2E | **Not tested** (no LiveKit/OpenAI session in agent run) |
+| `CARTVoiceAgent` import without `OPENAI_API_KEY` | Fails at STT init (expected; worker needs keys) |
 
-## Risks or blockers
+## Assumptions and risks
 
-- None for offline release; live behavior depends on owner smoke test.
+- `on_user_turn_completed` + `llm=None` depends on LiveKit Agents 1.8 behavior; owner must verify no duplicate/spurious LLM replies in live session.
+- LiveKit client CDN global is `LivekitClient` in `index.html`; verify in browser if connect fails.
+- Voice tests require `pip install -r coach/requirements-voice.txt` (imports `livekit`).
 
 ## Recommended next step
 
-- Owner: complete `coach/SMOKE-TEST.md` with real API key.
-- ChatGPT: SB-006 after review.
+- Owner: three-process test per `coach/VOICE.md` (LiveKit server, token server, agent worker).
+- ChatGPT: SB-007 (e.g. live test findings, turn-tuning, or merge strategy).
 
 ## Git
 
-- **Push status:** Verified — local `5accb7b` matches `origin/ai-coordination` (`git ls-remote`).
-- **Commit URL:** https://github.com/KaranAgar1987/speakbetter-ai/commit/5accb7b7614825d6dcfae0243c580784c8b3bc0a
+- **Push status:** (after push)
+- **Commit URL:** (after push)

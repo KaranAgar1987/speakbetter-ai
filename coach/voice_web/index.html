@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SpeakBetter AI — CART Voice</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+    button { margin-right: 0.5rem; margin-top: 0.5rem; padding: 0.5rem 1rem; }
+    #status { margin-top: 1rem; padding: 0.75rem; background: #f4f4f5; border-radius: 6px; }
+    .err { color: #b91c1c; }
+    .ok { color: #15803d; }
+  </style>
+</head>
+<body>
+  <h1>SpeakBetter CART Voice</h1>
+  <p>Local prototype: microphone → CART coach → spoken reply. Use headphones to reduce echo.</p>
+  <button id="connect">Connect</button>
+  <button id="disconnect" disabled>Disconnect</button>
+  <div id="status">Status: idle</div>
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.min.js"></script>
+  <script>
+    const statusEl = document.getElementById('status');
+    const connectBtn = document.getElementById('connect');
+    const disconnectBtn = document.getElementById('disconnect');
+    let room = null;
+
+    function setStatus(msg, ok) {
+      statusEl.textContent = 'Status: ' + msg;
+      statusEl.className = ok ? 'ok' : (ok === false ? 'err' : '');
+    }
+
+    async function connect() {
+      connectBtn.disabled = true;
+      setStatus('fetching token…');
+      try {
+        const res = await fetch('/token');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        setStatus('connecting to LiveKit…');
+        room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
+        room.on(LivekitClient.RoomEvent.Disconnected, () => {
+          setStatus('disconnected');
+          connectBtn.disabled = false;
+          disconnectBtn.disabled = true;
+        });
+        room.on(LivekitClient.RoomEvent.Connected, () => {
+          setStatus('connected — speak when ready; say hint or next as needed', true);
+          disconnectBtn.disabled = false;
+        });
+        await room.connect(data.url, data.token);
+        await room.localParticipant.setMicrophoneEnabled(true);
+      } catch (e) {
+        setStatus(e.message || String(e), false);
+        connectBtn.disabled = false;
+      }
+    }
+
+    async function disconnect() {
+      if (room) {
+        await room.disconnect();
+        room = null;
+      }
+      setStatus('idle');
+      connectBtn.disabled = false;
+      disconnectBtn.disabled = true;
+    }
+
+    connectBtn.addEventListener('click', connect);
+    disconnectBtn.addEventListener('click', disconnect);
+  </script>
+</body>
+</html>

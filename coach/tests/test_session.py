@@ -1,6 +1,6 @@
 import unittest
 
-from speakbetter_coach.cli import CoachApp
+from speakbetter_coach.coach_app import CoachApp
 from speakbetter_coach.llm import ScriptCompleter
 from speakbetter_coach.session import Session, Step
 
