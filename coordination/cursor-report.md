@@ -1,70 +1,67 @@
 # Cursor Report
 
-**Task ID:** SB-003  
+**Task ID:** SB-004  
 **Status:** Complete  
 **Branch:** `ai-coordination`  
-**Commit:** `72bb217`  
+**Commit:** `TBD`  
 **Date:** 2026-10-20
 
 ## Summary
 
-Added automatic local `.env` loading for the CART CLI using `python-dotenv`. Precedence: **process environment > `coach/.env` > repository-root `.env`**. Updated README and `.env.example`; added five offline tests. No coaching behavior changes; research and `knowledge/cart.md` untouched.
+Added explicit **`save`** command to export a completed CART story to local Markdown from `step_drafts` (user text only, four section headings). No additional OpenAI call on save. Incomplete sessions are rejected; existing files require `--force` to overwrite. Seven new offline tests; **26** tests total pass.
 
-## Repository areas inspected (before implementation)
+## Repository areas inspected
 
 | Area | Notes |
 |------|--------|
-| `coordination/next-task.md` | SB-003 scope: dotenv, tests, docs, push |
-| `coach/README.md` | Previously required manual `source` of `.env` |
-| `coach/speakbetter_coach/__main__.py` | Entry point before env loading |
-| `coach/speakbetter_coach/llm.py` | Reads `OPENAI_API_KEY` / `OPENAI_MODEL` from `os.environ` |
-| `coach/requirements.txt` | OpenAI only before SB-003 |
-| Existing tests | 14 tests in `coach/tests/` |
+| `coordination/next-task.md` | SB-004 save scope |
+| `coach/speakbetter_coach/cli.py` | Assembly via `_assemble()` sets `Step.DONE` |
+| `coach/speakbetter_coach/session.py` | `step_drafts` per CART step |
+| `coach/README.md` | Updated with save docs |
 
 ## Confirmed findings
 
-- New module `coach/speakbetter_coach/env_config.py` with `load_local_env(repo_root=None)`.
-- `__main__.py` calls `load_local_env()` before constructing `OpenAIChatCompleter`.
-- Missing key still raises `RuntimeError` without echoing secret values.
+- New `coach/speakbetter_coach/story_save.py`: format, parse, write, completeness check.
+- Save uses `format_story_markdown(step_drafts)` only—not chat history or system prompts.
+- `CoachApp(cwd=...)` supports tests with temporary directories.
 
 ## Assumptions and unknowns
 
 | Item | Note |
 |------|------|
-| Live CLI with real `.env` | Not run in agent (no API key); behavior covered by unit tests |
-| Both env files present | Documented precedence; tested for duplicate keys |
+| Saved content | User step text only; coach’s assembled LLM narrative is shown in session but not written to file (per task §5) |
+| Working directory | Default save path is `Path.cwd()` when the CLI runs |
 
 ## Files changed
 
 | Path | Change |
 |------|--------|
-| `coach/speakbetter_coach/env_config.py` | New — load `.env` files |
-| `coach/speakbetter_coach/__main__.py` | Call `load_local_env()` at startup |
-| `coach/requirements.txt` | Add `python-dotenv` |
-| `coach/README.md` | Auto-load docs and precedence table |
-| `coach/.env.example` | Clarify auto-load |
-| `coach/tests/test_env_config.py` | New offline tests |
+| `coach/speakbetter_coach/story_save.py` | New |
+| `coach/speakbetter_coach/cli.py` | `save` handler |
+| `coach/speakbetter_coach/session.py` | DONE-step hint mentions save |
+| `coach/tests/test_story_save.py` | New tests |
+| `coach/README.md` | Save command docs |
 | `coordination/cursor-report.md` | This report |
-| `coordination/project-state.md` | Post-SB-003 state |
+| `coordination/project-state.md` | Post-SB-004 state |
 
-**Not changed:** `knowledge/cart.md`, `research/philipp-humm/`, `coordination/next-task.md`, CART session logic.
+**Not changed:** `knowledge/cart.md`, `research/philipp-humm/`.
 
 ## Validation
 
 | Command | Result |
 |---------|--------|
-| `pip install -r coach/requirements.txt` | OK |
-| `PYTHONPATH=coach python -m unittest discover -s coach/tests -v` | **OK — 19 tests** |
+| `PYTHONPATH=coach python -m unittest discover -s coach/tests -v` | **OK — 26 tests** |
 
 ## Risks or blockers
 
-- None identified. Users must still `pip install` after pull to get `python-dotenv`.
+- None.
 
 ## Recommended next step
 
-- ChatGPT: define SB-004 in `next-task.md` (e.g. optional draft export, Hindi hints, or smoke-test script).
+- Live user test: complete session, `save`, open Markdown file.
+- ChatGPT: SB-005 in `next-task.md`.
 
 ## Git
 
-- **Push status:** Succeeded (`e9c7560..72bb217` on `origin/ai-coordination`).
-- **Commit URL:** https://github.com/KaranAgar1987/speakbetter-ai/commit/72bb217684ed7719f5bf199d4eab26aa8d238edd
+- **Push status:** (after push)
+- **Commit URL:** (after push)

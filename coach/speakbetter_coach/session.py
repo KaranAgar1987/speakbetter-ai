@@ -82,4 +82,8 @@ class Session:
             return f"[{self.step.label}] {HINTS[self.step]}"
         if self.step == Step.WELCOME:
             return "Share a professional situation (meeting, update, interview, sales call) you want to turn into a short story."
+        if self.step == Step.DONE:
+            return (
+                "Story complete. Use: save | save path/to/story.md | restart | quit"
+            )
         return "Type your story content, or use: hint | example | next | restart | quit"

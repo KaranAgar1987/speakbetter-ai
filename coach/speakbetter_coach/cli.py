@@ -1,5 +1,7 @@
 """Interactive CART coach CLI."""
 
+from pathlib import Path
+
 from speakbetter_coach.examples import resolve_example_command
 from speakbetter_coach.guardrails import filter_forbidden_phrases
 from speakbetter_coach.knowledge import find_repo_root, load_cart_markdown
@@ -10,20 +12,32 @@ from speakbetter_coach.prompts import (
     step_instruction,
 )
 from speakbetter_coach.session import Session, Step
+from speakbetter_coach.story_save import (
+    format_story_markdown,
+    parse_save_command,
+    story_is_complete,
+    write_story_file,
+)
 
 WELCOME_TEXT = """SpeakBetter AI — CART coach (text)
 Context → Adversity → Resolution → Takeaway
 
 Describe a workplace situation you want to turn into a short story.
-Commands: hint | example [dentist|a|b|c|d] | next | restart | quit
+Commands: hint | example [dentist|a|b|c|d] | next | save [path] | restart | quit
 """
 
 
 class CoachApp:
-    def __init__(self, completer: ChatCompleter, cart_markdown: str) -> None:
+    def __init__(
+        self,
+        completer: ChatCompleter,
+        cart_markdown: str,
+        cwd: Path | None = None,
+    ) -> None:
         self.completer = completer
         self.system_message = build_system_message(cart_markdown)
         self.session = Session()
+        self.cwd = cwd or Path.cwd()
 
     def start(self) -> str:
         self.session.reset()
@@ -75,6 +89,9 @@ class CoachApp:
             parts = raw.split()[1:]
             return resolve_example_command(parts) or "", False
 
+        if lower.startswith("save"):
+            return self._handle_save(raw), False
+
         if lower == "next":
             if self.session.step == Step.ASSEMBLE:
                 return "Story assembly is already complete. Type restart for a new story.", False
@@ -106,6 +123,19 @@ class CoachApp:
             return reply, False
 
         return self.session.hint_text(), False
+
+    def _handle_save(self, raw: str) -> str:
+        command = parse_save_command(raw, self.cwd)
+        if command is None:
+            return "Could not parse save command. Try: save | save my-story.md | save --force"
+        if not story_is_complete(self.session.step_drafts, self.session.step):
+            return (
+                "Your story is not ready to save yet. Complete Context, Adversity, "
+                "Resolution, and Takeaway, then type `next` after Takeaway to finish assembly."
+            )
+        markdown = format_story_markdown(self.session.step_drafts)
+        ok, message = write_story_file(command, markdown)
+        return message
 
     def _assemble(self) -> str:
         instruction = assembly_instruction(self.session.step_drafts)

@@ -54,8 +54,14 @@ PYTHONPATH=coach python -m speakbetter_coach
 | `example dentist` | Verified SRC-001 paraphrase (labeled) |
 | `example a` … `d` | SpeakBetter AI illustrations (labeled) |
 | `next` | Move to the next CART step when ready |
+| `save` | Save completed story to `speakbetter-cart-story.md` in the current directory |
+| `save my-story.md` | Save to a specific path (relative to current directory) |
+| `save --force` | Overwrite the default file if it already exists |
+| `save --force path.md` | Overwrite a specific file if it already exists |
 | `restart` | New story |
 | `quit` | Exit |
+
+After you finish **Takeaway**, type `next` once more to assemble your draft. Then use `save` to write a Markdown file with **Context**, **Adversity**, **Resolution**, and **Takeaway** sections (your words only—no API keys or hidden prompts). Saving does not call the OpenAI API. If the target file exists, the CLI refuses to overwrite unless you pass `--force`.
 
 Type natural-language answers between steps. The coach may ask follow-ups per `cart.md`; use `next` when you are ready to advance.
 
