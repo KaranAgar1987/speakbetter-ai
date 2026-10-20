@@ -9,6 +9,7 @@ from speakbetter_coach.session import Session, Step
 from speakbetter_coach.story_save import (
     DEFAULT_FILENAME,
     format_story_markdown,
+    is_save_command,
     parse_save_command,
     story_is_complete,
     write_story_file,
@@ -23,6 +24,15 @@ class TestStorySave(unittest.TestCase):
             "resolution": "We used a recording.",
             "takeaway": "What I learned is honesty beats pretending.",
         }
+
+    def test_is_save_command_exact_token_only(self) -> None:
+        self.assertTrue(is_save_command("save"))
+        self.assertTrue(is_save_command("save out.md"))
+        self.assertFalse(is_save_command("saved"))
+        self.assertFalse(is_save_command("savings account"))
+
+    def test_parse_rejects_multiple_paths(self) -> None:
+        self.assertIsNone(parse_save_command("save a b.md"))
 
     def test_format_markdown_sections(self) -> None:
         md = format_story_markdown(self._full_drafts())
@@ -69,6 +79,28 @@ class TestStorySave(unittest.TestCase):
             ok, _ = write_story_file(cmd, "# new\n")
             self.assertTrue(ok)
             self.assertEqual(target.read_text(encoding="utf-8"), "# new\n")
+
+    def test_saved_is_story_text_not_save_command(self) -> None:
+        completer = ScriptCompleter()
+        with mock.patch.object(
+            completer, "complete", wraps=completer.complete
+        ) as mocked:
+            app = CoachApp(completer, "# CART\n", cwd=Path("."))
+            app.start()
+            app.handle_line("saved the deck for later")
+            mocked.assert_called()
+
+    def test_duplicate_save_reports_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            app = CoachApp(ScriptCompleter(), "# CART\n", cwd=Path(tmp))
+            app.start()
+            for text in ("C", "A", "R", "T"):
+                app.handle_line(text)
+                app.handle_line("next")
+            app.handle_line("save")
+            out, _ = app.handle_line("save")
+            self.assertIn("Save failed", out)
+            self.assertIn("already exists", out.lower())
 
     def test_incomplete_session_message(self) -> None:
         app = CoachApp(ScriptCompleter(), "# CART\n", cwd=Path("."))

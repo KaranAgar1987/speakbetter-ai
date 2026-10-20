@@ -7,23 +7,25 @@ Minimal local, text-only coach guided by [`../knowledge/cart.md`](../knowledge/c
 - Python 3.11+ (3.10+ should work)
 - OpenAI API key
 
-## Setup
+## Setup (macOS)
 
-From the **repository root**:
+Run these from the **repository root** (`speakbetter-ai/`, the folder that contains `knowledge/cart.md`):
 
 ```bash
 python3 -m venv coach/.venv
-source coach/.venv/bin/activate   # Windows: coach\.venv\Scripts\activate
+source coach/.venv/bin/activate
 pip install -r coach/requirements.txt
-cp coach/.env.example coach/.env    # or .env at repo root
+cp coach/.env.example coach/.env
 ```
 
-Edit `coach/.env` (recommended) or a repository-root `.env` and set:
+Edit **`coach/.env`** (do not commit it) and set your OpenAI key:
 
 ```bash
 OPENAI_API_KEY=your-key-here
 OPENAI_MODEL=gpt-4o-mini   # optional
 ```
+
+Live API calls **incur usage charges** on your OpenAI account. For a full manual checklist, see [`SMOKE-TEST.md`](./SMOKE-TEST.md).
 
 On startup, the CLI **automatically loads** local env files (via `python-dotenv`):
 
@@ -41,9 +43,10 @@ From the repository root (so `knowledge/cart.md` can be found):
 
 ```bash
 source coach/.venv/bin/activate
-pip install -r coach/requirements.txt   # if not already installed
 PYTHONPATH=coach python -m speakbetter_coach
 ```
+
+If `OPENAI_API_KEY` is missing, the CLI prints a short error and exits (no traceback). Launch from the repository root so `knowledge/cart.md` can be found.
 
 ## Session commands
 

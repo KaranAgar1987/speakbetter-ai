@@ -43,11 +43,17 @@ class SaveCommand:
     force: bool
 
 
+def is_save_command(line: str) -> bool:
+    """True only when the line is the ``save`` command (not e.g. ``saved`` or ``savings``)."""
+    parts = line.strip().split()
+    return bool(parts) and parts[0].lower() == "save"
+
+
 def parse_save_command(line: str, cwd: Path | None = None) -> SaveCommand | None:
     """Parse ``save``, ``save --force``, ``save path.md``, or ``save --force path.md``."""
-    parts = line.strip().split()
-    if not parts or parts[0].lower() != "save":
+    if not is_save_command(line):
         return None
+    parts = line.strip().split()
     base = cwd or Path.cwd()
     force = False
     path_parts: list[str] = []
@@ -56,6 +62,8 @@ def parse_save_command(line: str, cwd: Path | None = None) -> SaveCommand | None
             force = True
         else:
             path_parts.append(token)
+    if len(path_parts) > 1:
+        return None
     if path_parts:
         target = Path(path_parts[0]).expanduser()
         if not target.is_absolute():
@@ -73,6 +81,12 @@ def write_story_file(command: SaveCommand, markdown: str) -> tuple[bool, str]:
             "Use a different name (e.g. `save my-story.md`) or "
             "`save --force` to overwrite.",
         )
-    command.path.parent.mkdir(parents=True, exist_ok=True)
-    command.path.write_text(markdown, encoding="utf-8")
+    try:
+        command.path.parent.mkdir(parents=True, exist_ok=True)
+        command.path.write_text(markdown, encoding="utf-8")
+    except OSError:
+        return (
+            False,
+            "Could not write the file. Check that the path is valid and you have permission.",
+        )
     return True, f"Story saved to {command.path}"

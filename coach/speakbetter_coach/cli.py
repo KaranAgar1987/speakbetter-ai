@@ -14,6 +14,7 @@ from speakbetter_coach.prompts import (
 from speakbetter_coach.session import Session, Step
 from speakbetter_coach.story_save import (
     format_story_markdown,
+    is_save_command,
     parse_save_command,
     story_is_complete,
     write_story_file,
@@ -89,7 +90,7 @@ class CoachApp:
             parts = raw.split()[1:]
             return resolve_example_command(parts) or "", False
 
-        if lower.startswith("save"):
+        if is_save_command(raw):
             return self._handle_save(raw), False
 
         if lower == "next":
@@ -135,7 +136,9 @@ class CoachApp:
             )
         markdown = format_story_markdown(self.session.step_drafts)
         ok, message = write_story_file(command, markdown)
-        return message
+        if ok:
+            return message
+        return f"Save failed. {message}"
 
     def _assemble(self) -> str:
         instruction = assembly_instruction(self.session.step_drafts)
