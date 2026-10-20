@@ -1,0 +1,333 @@
+# Philipp Humm — canonical source index (SpeakBetter AI research)
+# Rebuilt: 2026-10-20 (from discovery-log.md + extracts; prior file was missing on disk)
+#
+# evidence_status (same set as methodology/evidence-standards.md):
+#   verified-framework | verified-teaching-point | single-source | lead-unverified
+#   unresolved-relationship | not-applicable | interpretation | inaccessible
+#
+# Record counts (must match discovery-log.md):
+#   Story Lab SRC-001…SRC-014: 14 (public)
+#   YouTube SRC-V01…SRC-V10: 10 (public)
+#   Discovery SRC-X01: 1 (inaccessible)
+#   Total: 25 | Accessible: 24
+
+schema_version: 1
+last_updated: 2026-10-20
+tier_default: tier-1
+
+counts:
+  total: 25
+  accessible: 24
+  story_lab: 14
+  youtube: 10
+  inaccessible: 1
+
+verified_frameworks_index:
+  CART:
+    label: Context, Adversity, Resolution, Takeaway
+    sources: [SRC-001, SRC-002]
+  5-P-confidence-loop:
+    label: Proof, Practice, Prime, Purpose, Praise
+    sources: [SRC-014, SRC-V01]
+
+sources:
+  - id: SRC-001
+    title: Storytelling structure (CART)
+    url: https://storylab.co/structure/
+    platform: storylab
+    access: public
+    date_on_page: 2024-04-22
+    extract: extracts/articles/SRC-001-structure.md
+    evidence_status: verified-framework
+    verified_frameworks: [CART]
+    research_status: extracted
+
+  - id: SRC-002
+    title: 7 Years of Storytelling Advice (20 lessons)
+    url: https://storylab.co/7-years-of-storytelling-advice-in-54-mins/
+    platform: storylab
+    access: public
+    date_on_page: 2024-10-30
+    extract: extracts/articles/SRC-002-seven-years-storytelling.md
+    evidence_status: verified-framework
+    verified_frameworks: [CART]
+    framework_leads: [StorySelling Method, Homework for Life]
+    research_status: extracted
+
+  - id: SRC-003
+    title: Storytelling made simple (zoom in)
+    url: https://storylab.co/storytelling-made-simple/
+    platform: storylab
+    access: public
+    date_on_page: 2025-03-28
+    extract: extracts/articles/SRC-003-storytelling-made-simple.md
+    evidence_status: single-source
+    paired_sources:
+      - id: SRC-V04
+        relationship: thematic-only
+      - id: SRC-V07
+        relationship: thematic-only
+    research_status: extracted
+
+  - id: SRC-004
+    title: The StorySelling Method (book landing)
+    url: https://storylab.co/the-storyselling-method/
+    platform: storylab
+    access: public
+    date_on_page: null
+    extract: extracts/articles/SRC-004-006-book-landings.md
+    evidence_status: lead-unverified
+    framework_leads: [StorySelling Method]
+    research_status: inventoried
+
+  - id: SRC-005
+    title: Storytelling for Business (book landing)
+    url: https://storylab.co/storytelling-for-business/
+    platform: storylab
+    access: public
+    date_on_page: null
+    extract: extracts/articles/SRC-004-006-book-landings.md
+    evidence_status: not-applicable
+    research_status: inventoried
+
+  - id: SRC-006
+    title: Public Speaking with Confidence (book landing)
+    url: https://storylab.co/public-speaking-with-confidence/
+    platform: storylab
+    access: public
+    date_on_page: null
+    extract: extracts/articles/SRC-004-006-book-landings.md
+    evidence_status: not-applicable
+    research_status: inventoried
+
+  - id: SRC-007
+    title: Better speaker than 99%
+    url: https://storylab.co/better-speaker-than-99/
+    platform: storylab
+    access: public
+    date_on_page: 2024-10-12
+    extract: extracts/articles/SRC-007-better-speaker-than-99.md
+    evidence_status: unresolved-relationship
+    framework_leads: [Anticipation Hook, twenty spices]
+    paired_sources:
+      - id: SRC-V02
+        relationship: same-theme-different-enumeration
+    research_status: extracted
+
+  - id: SRC-008
+    title: 4 strategies to prepare for a presentation
+    url: https://storylab.co/prep-strategies/
+    platform: storylab
+    access: public
+    date_on_page: 2023-03-28
+    extract: extracts/articles/SRC-008-prep-strategies.md
+    evidence_status: single-source
+    research_status: extracted
+
+  - id: SRC-009
+    title: Team / bio
+    url: https://storylab.co/team/
+    platform: storylab
+    access: public
+    date_on_page: null
+    extract: extracts/articles/SRC-009-team.md
+    evidence_status: not-applicable
+    research_status: inventoried
+
+  - id: SRC-010
+    title: How I'd learn public speaking
+    url: https://storylab.co/learn-public-speaking/
+    platform: storylab
+    access: public
+    date_on_page: 2023-10-16
+    extract: extracts/articles/SRC-010-learn-public-speaking.md
+    evidence_status: verified-teaching-point
+    teaching_points:
+      - constructive-embarrassment
+      - feel-good-on-stage-first
+      - improv-theatre
+    supporting_sources: [SRC-007, SRC-008]
+    research_status: extracted
+
+  - id: SRC-011
+    title: 5 storytelling techniques
+    url: https://storylab.co/storytelling-techniques/
+    platform: storylab
+    access: public
+    date_on_page: 2021-01-08
+    extract: extracts/articles/SRC-011-storytelling-techniques.md
+    evidence_status: single-source
+    research_status: extracted
+
+  - id: SRC-012
+    title: Storytelling for interviews
+    url: https://storylab.co/storytelling-for-interviews/
+    platform: storylab
+    access: public
+    date_on_page: 2022-03-10
+    extract: extracts/articles/SRC-012-storytelling-for-interviews.md
+    evidence_status: single-source
+    research_status: extracted
+
+  - id: SRC-013
+    title: 5 best presentation openers
+    url: https://storylab.co/start-your-presentation/
+    platform: storylab
+    access: public
+    date_on_page: 2023-09-04
+    extract: extracts/articles/SRC-013-start-your-presentation.md
+    evidence_status: single-source
+    paired_sources:
+      - id: SRC-V03
+        relationship: openings-thematic-only
+      - id: SRC-V08
+        relationship: openings-thematic-only
+      - id: SRC-V09
+        relationship: openings-thematic-only
+    research_status: extracted
+
+  - id: SRC-014
+    title: 5-P confidence loop (article)
+    url: https://storylab.co/5-p-confidence-loop-framework-public-speaking-confidence/
+    platform: storylab
+    access: public
+    date_on_page: 2026-04-13
+    extract: extracts/articles/SRC-014-5-p-confidence-loop.md
+    evidence_status: verified-framework
+    verified_frameworks: [5-P-confidence-loop]
+    research_status: extracted
+
+  - id: SRC-V01
+    title: How to Speak With Confidence
+    url: https://www.youtube.com/watch?v=OahwQSlPG0I
+    platform: youtube
+    channel: "@Philipp-Humm"
+    access: public
+    upload_date: 2026-04-11
+    extract: extracts/videos/SRC-V01-speak-with-confidence.md
+    evidence_status: verified-framework
+    verified_frameworks: [5-P-confidence-loop]
+    companion_article: SRC-014
+    review_level: selective
+    research_status: extracted
+
+  - id: SRC-V02
+    title: How to Speak Better Than 99% of People
+    url: https://www.youtube.com/watch?v=ZFKHTFYXppw
+    platform: youtube
+    channel: "@Philipp-Humm"
+    access: public
+    upload_date: 2026-10-15
+    extract: extracts/videos/SRC-V02-speak-better-99.md
+    evidence_status: unresolved-relationship
+    paired_sources:
+      - id: SRC-007
+        relationship: same-theme-different-enumeration
+    review_level: selective
+    research_status: extracted
+
+  - id: SRC-V03
+    title: Start presentation strong
+    url: https://www.youtube.com/watch?v=cwXMVbo7IAI
+    platform: youtube
+    channel: "@Philipp-Humm"
+    access: public
+    upload_date: 2026-04-26
+    extract: extracts/videos/SRC-V03-start-presentation-strong.md
+    evidence_status: single-source
+    review_level: selective
+    research_status: extracted
+
+  - id: SRC-V04
+    title: 18min storytelling improvement
+    url: https://www.youtube.com/watch?v=YtkrIaONxu0
+    platform: youtube
+    channel: "@Philipp-Humm"
+    access: public
+    upload_date: 2026-04-19
+    extract: extracts/videos/SRC-V04-storytelling-18min.md
+    evidence_status: single-source
+    review_level: partial
+    research_status: extracted
+
+  - id: SRC-V05
+    title: Storytelling genius
+    url: https://www.youtube.com/watch?v=Dg00hYIsi_M
+    platform: youtube
+    channel: "@Philipp-Humm"
+    access: public
+    upload_date: 2026-05-16
+    extract: extracts/videos/SRC-V05-storytelling-genius.md
+    evidence_status: lead-unverified
+    review_level: partial
+    research_status: extracted
+
+  - id: SRC-V06
+    title: Presentation in 6 minutes
+    url: https://www.youtube.com/watch?v=0z5q2acRXI8
+    platform: youtube
+    channel: "@Philipp-Humm"
+    access: public
+    upload_date: 2026-08-20
+    extract: extracts/videos/SRC-V06-presentation-6min.md
+    evidence_status: lead-unverified
+    review_level: selective
+    research_status: extracted
+
+  - id: SRC-V07
+    title: Tell stories (whisper reaction)
+    url: https://www.youtube.com/watch?v=Xa282PF7_wA
+    platform: youtube
+    channel: "@Philipp-Humm"
+    access: public
+    upload_date: 2026-07-29
+    extract: extracts/videos/SRC-V07-tell-stories-whisper.md
+    evidence_status: lead-unverified
+    review_level: partial
+    research_status: extracted
+
+  - id: SRC-V08
+    title: How to start a story
+    url: https://www.youtube.com/watch?v=o4ceJj-paFA
+    platform: youtube
+    channel: "@Philipp-Humm"
+    access: public
+    upload_date: 2026-03-11
+    extract: extracts/videos/SRC-V08-start-a-story.md
+    evidence_status: lead-unverified
+    review_level: partial
+    research_status: extracted
+
+  - id: SRC-V09
+    title: How to start a speech
+    url: https://www.youtube.com/watch?v=9HJ0AHfx7BE
+    platform: youtube
+    channel: "@Philipp-Humm"
+    access: public
+    upload_date: 2026-02-26
+    extract: extracts/videos/SRC-V09-start-a-speech.md
+    evidence_status: lead-unverified
+    review_level: partial
+    research_status: extracted
+
+  - id: SRC-V10
+    title: Storytelling trick (need to know what happens)
+    url: https://www.youtube.com/watch?v=mN4D9lyvnVk
+    platform: youtube
+    channel: "@Philipp-Humm"
+    access: public
+    upload_date: 2026-07-09
+    extract: extracts/videos/SRC-V10-storytelling-trick.md
+    evidence_status: lead-unverified
+    review_level: selective
+    research_status: extracted
+
+  - id: SRC-X01
+    title: WordPress post sitemap (discovery)
+    url: https://storylab.co/wp-sitemap-posts-post-1.xml
+    platform: storylab
+    access: inaccessible
+    inaccessible_reason: Cloudflare challenge
+    extract: null
+    evidence_status: inaccessible
+    research_status: inaccessible
