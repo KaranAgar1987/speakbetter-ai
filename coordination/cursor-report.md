@@ -3,7 +3,7 @@
 **Task ID:** SB-002  
 **Status:** Complete  
 **Branch:** `ai-coordination`  
-**Commit:** (see GitHub link below after push)  
+**Commit:** `3e91930`  
 **Date:** 2026-10-20
 
 ## Summary
@@ -68,5 +68,5 @@ Implemented a minimal **Python CLI** CART coach under `coach/`. The CLI loads `k
 
 ## Git
 
-- **Push:** to `origin/ai-coordination` (verified after push in agent output).
-- **Commit URL:** recorded below after push.
+- **Push:** Succeeded to `origin/ai-coordination` (`530f0cd..3e91930`).
+- **Commit URL:** https://github.com/KaranAgar1987/speakbetter-ai/commit/3e91930
