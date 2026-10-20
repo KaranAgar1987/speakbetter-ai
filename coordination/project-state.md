@@ -2,29 +2,29 @@
 
 **Last updated:** 2026-10-20  
 **Coordination branch:** `ai-coordination`  
-**Current milestone:** SB-003 complete — automatic `.env` loading for the CART CLI.
+**Current milestone:** SB-003 verified; SB-004 is the next usability improvement.
 
 ## Product direction
-SpeakBetter AI helps users improve workplace communication. The initial product is a minimal **text-based CART coach** (CLI), not voice/video or a large application stack.
+SpeakBetter AI helps users improve workplace communication. The initial product is a minimal text-based CART coach (CLI), guided by `knowledge/cart.md`.
 
 ## Core method
-CART: **Context → Adversity → Resolution → Takeaway**, per `knowledge/cart.md`.
+CART: **Context → Adversity → Resolution → Takeaway**.
 
 ## Verified state after SB-003
 - Repository: `KaranAgar1987/speakbetter-ai`
-- Branch: `ai-coordination` (not merged to `main`).
-- `coach/`: Python CLI loads `knowledge/cart.md`; OpenAI coaching; session commands unchanged from SB-002.
-- **Environment:** On startup, `load_local_env()` loads `coach/.env` then repository-root `.env` via `python-dotenv` with `override=False` (shell variables win; `coach/.env` wins over root `.env` for duplicate keys).
-- Dependencies: `openai`, `python-dotenv` in `coach/requirements.txt`.
-- Offline tests: **19** passed (`PYTHONPATH=coach python -m unittest discover -s coach/tests -v`).
-- `knowledge/cart.md` and `research/philipp-humm/` unchanged.
-
-## Prior milestones
-- SB-002 implementation: [`3e91930`](https://github.com/KaranAgar1987/speakbetter-ai/commit/3e91930eeb444267b4740d9f1df4692c0dabe8ec)
+- SB-003 implementation commit: [`72bb217`](https://github.com/KaranAgar1987/speakbetter-ai/commit/72bb217684ed7719f5bf199d4eab26aa8d238edd), verified through GitHub commit metadata.
+- The SB-003 report at `coordination/cursor-report.md` states the commit was pushed to `origin/ai-coordination`.
+- `coach/` contains a Python CLI using OpenAI-backed coaching and the existing CART knowledge document.
+- Local environment loading: `coach/.env` then repository-root `.env`, without overriding already-set process environment variables.
+- Offline test suite reported 19 passing tests: `PYTHONPATH=coach python -m unittest discover -s coach/tests -v`.
+- A live OpenAI session was not tested in the agent environment because no API key was available.
+- `.gitignore` excludes root `.env` and `coach/.env`, while allowing `coach/.env.example`.
+- `knowledge/cart.md` and `research/philipp-humm/` remain unchanged.
 
 ## Coordination workflow
-- Cursor completes tasks per `coordination/next-task.md`, updates report/state, commits and pushes to `origin/ai-coordination`.
-- Owner runs Cursor for each handoff; GitHub file changes do not auto-start Cursor.
+- `coordination/next-task.md` defines SB-004: save the assembled CART story to a local Markdown file, with explicit non-overwrite behavior and offline tests.
+- Cursor must inspect branch/status, preserve unrelated changes, implement only the scoped task, run tests, update report/state, commit and push to `origin/ai-coordination`, and verify the remote commit.
+- Do not merge to `main`. Updating GitHub files does not automatically start Cursor; the owner must run the Cursor Agent for each handoff.
 
 ## Next milestone
-Review SB-003 commit and tests; ChatGPT defines the next task in `next-task.md`.
+Complete SB-004, review its verified commit and tests, then decide whether to prioritize live user testing or another small improvement.
