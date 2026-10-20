@@ -75,10 +75,12 @@ source coach/.venv/bin/activate
 PYTHONPATH=coach python -m speakbetter_coach.voice.agent dev
 ```
 
+The agent loads `coach/.env` in **`main()`** before the LiveKit worker starts (the worker needs `LIVEKIT_URL` immediately; loading only inside a job entrypoint is too late).
+
 ## Voice behavior (turn-taking)
 
 - VAD + min/max endpointing delays reduce cutting off mid-thought (not perfect; verify in a real session).
-- **Voice mode:** plain story text is recorded; the coach **acks** without calling the chat API unless you ask for coaching (`hint`, `help`, `feedback`, `suggest`, etc.).
+- **Voice mode (default):** **conversational** — each turn uses the same CART coach LLM as the text CLI (brief spoken replies). Set `VOICE_CONVERSATIONAL=false` for the older ack-only mode (saves API calls).
 - Spoken/text commands: `next`, `hint`, `example`, `save`, `restart`, `quit` (same logic as CLI where applicable).
 
 ## Text CLI (unchanged)

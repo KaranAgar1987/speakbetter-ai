@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlparse
 
 from speakbetter_coach.env_config import load_local_env
 from speakbetter_coach.voice.config import load_livekit_config
+from speakbetter_coach.voice.dispatch import ensure_agent_dispatch
 from speakbetter_coach.voice.tokens import create_participant_token
 
 WEB_ROOT = Path(__file__).resolve().parents[2] / "voice_web"
@@ -41,6 +42,7 @@ class TokenHandler(BaseHTTPRequestHandler):
         data = index.read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
@@ -53,6 +55,7 @@ class TokenHandler(BaseHTTPRequestHandler):
             return
         qs = parse_qs(parsed.query)
         identity = qs.get("identity", ["speakbetter-user"])[0]
+        ensure_agent_dispatch(config)
         try:
             jwt = create_participant_token(config, identity=identity)
         except Exception:

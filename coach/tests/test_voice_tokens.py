@@ -1,3 +1,5 @@
+import base64
+import json
 import os
 import unittest
 from unittest import mock
@@ -21,6 +23,11 @@ class TestVoiceTokens(unittest.TestCase):
         self.assertTrue(len(jwt) > 20)
         self.assertNotIn(secret, jwt)
         self.assertNotIn("super-secret", jwt)
+        payload_b64 = jwt.split(".")[1]
+        payload_b64 += "=" * (-len(payload_b64) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+        self.assertIn("roomConfig", payload)
+        self.assertTrue(payload["roomConfig"].get("agents"))
 
     def test_token_endpoint_shape(self) -> None:
         env = {
