@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SpeakBetter AI — CART Voice</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+    button { margin-right: 0.5rem; margin-top: 0.5rem; padding: 0.5rem 1rem; }
+    #status { margin-top: 1rem; padding: 0.75rem; background: #f4f4f5; border-radius: 6px; white-space: pre-wrap; }
+    .err { color: #b91c1c; }
+    .ok { color: #15803d; }
+    #agent-audio { display: none; }
+  </style>
+</head>
+<body>
+  <h1>SpeakBetter CART Voice</h1>
+  <p>Local prototype: microphone → CART coach → spoken reply. Use headphones to reduce echo.</p>
+  <button id="connect">Connect</button>
+  <button id="disconnect" disabled>Disconnect</button>
+  <div id="status">Status: idle</div>
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.min.js"></script>
+  <script>
+    const statusEl = document.getElementById('status');
+    const connectBtn = document.getElementById('connect');
+    const disconnectBtn = document.getElementById('disconnect');
+    let room = null;
+    let agentAudioEl = null;
+
+    function setStatus(msg, ok) {
+      statusEl.textContent = 'Status: ' + msg;
+      statusEl.className = ok ? 'ok' : (ok === false ? 'err' : '');
+    }
+
+    function attachAgentAudio(track) {
+      if (track.kind !== LivekitClient.Track.Kind.Audio) return;
+      if (agentAudioEl) {
+        try { track.detach(agentAudioEl); } catch (_) {}
+        agentAudioEl.remove();
+      }
+      agentAudioEl = track.attach();
+      agentAudioEl.id = 'agent-audio';
+      agentAudioEl.autoplay = true;
+      agentAudioEl.playsInline = true;
+      document.body.appendChild(agentAudioEl);
+      agentAudioEl.play().catch(() => {
+        setStatus('connected — click Connect again if you hear no coach audio (browser blocked autoplay)', true);
+      });
+    }
+
+    function attachExistingRemoteAudio() {
+      if (!room) return;
+      let remotes = 0;
+      room.remoteParticipants.forEach((participant) => {
+        remotes += 1;
+        participant.audioTrackPublications.forEach((pub) => {
+          if (pub.track) attachAgentAudio(pub.track);
+          else if (!pub.isSubscribed) pub.setSubscribed(true);
+        });
+      });
+      return remotes;
+    }
+
+    async function connect() {
+      connectBtn.disabled = true;
+      setStatus('fetching token…');
+      try {
+        const res = await fetch('/token');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        setStatus('connecting to LiveKit…');
+        room = new LivekitClient.Room({
+          adaptiveStream: true,
+          dynacast: true,
+          audioCaptureDefaults: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+        room.on(LivekitClient.RoomEvent.Disconnected, () => {
+          setStatus('disconnected');
+          connectBtn.disabled = false;
+          disconnectBtn.disabled = true;
+          if (agentAudioEl) {
+            agentAudioEl.remove();
+            agentAudioEl = null;
+          }
+        });
+        room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, _pub, participant) => {
+          if (!participant.isLocal) attachAgentAudio(track);
+        });
+        room.on(LivekitClient.RoomEvent.ParticipantConnected, () => {
+          const n = attachExistingRemoteAudio();
+          setStatus(`connected — coach joined (${n} remote). Speak when ready.`, true);
+        });
+        room.on(LivekitClient.RoomEvent.Connected, () => {
+          disconnectBtn.disabled = false;
+          const n = attachExistingRemoteAudio();
+          setStatus(
+            n > 0
+              ? 'connected — coach in room. You should hear the opening prompt.'
+              : 'connected — waiting for coach agent… (is the worker running?)',
+            true
+          );
+        });
+        await room.connect(data.url, data.token);
+        await room.startAudio();
+        await room.localParticipant.setMicrophoneEnabled(true);
+        attachExistingRemoteAudio();
+      } catch (e) {
+        setStatus(e.message || String(e), false);
+        connectBtn.disabled = false;
+      }
+    }
+
+    async function disconnect() {
+      if (room) {
+        await room.disconnect();
+        room = null;
+      }
+      if (agentAudioEl) {
+        agentAudioEl.remove();
+        agentAudioEl = null;
+      }
+      setStatus('idle');
+      connectBtn.disabled = false;
+      disconnectBtn.disabled = true;
+    }
+
+    connectBtn.addEventListener('click', connect);
+    disconnectBtn.addEventListener('click', disconnect);
+  </script>
+</body>
+</html>
