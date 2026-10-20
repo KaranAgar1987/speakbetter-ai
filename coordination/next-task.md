@@ -1,110 +1,132 @@
 # Next Task for Cursor
 
-**Task ID:** SB-006  
+**Task ID:** SB-007  
 **Status:** Ready  
 **Priority:** High  
 **Owner:** Cursor  
-**Branch:** `ai-coordination`
+**Branch:** `feature/voice-coach-improvements`
 
 ## Objective
 
-Build a **local LiveKit voice prototype for SpeakBetter AI**, integrating real-time browser voice with the existing Python CART coach. The deliverable is a working local prototype where the user can speak, the coach uses the existing CART logic, and the response is spoken back.
+Improve the existing SpeakBetter AI LiveKit voice experience across four connected areas in one coordinated task:
 
-This is one task: voice integration is the implementation; the local voice prototype is the outcome. Do not build a separate chat UI or deploy to the cloud in this task.
+1. Response latency
+2. Adaptive CART coaching intelligence
+3. Voice quality and conversational naturalness
+4. Integrated testing and reliability
 
-## Required context
+The current local prototype can connect, accept speech, and respond, but responses feel slow, the voice/tone needs improvement, and the coach can feel repetitive or generic.
+
+Preserve the existing Python CART coaching implementation and the minimal text CLI. Do not build a separate chat product or deploy to the cloud.
+
+## Required workflow
 
 Before coding, read:
 - `coordination/README.md`
 - `coordination/project-state.md`
 - `coordination/decisions.md`
 - `coordination/cursor-report.md`
-- `coordination/next-task.md` (this task)
+- `coordination/next-task.md`
 - `coach/README.md`
-- `coach/requirements.txt`
-- the Python coach implementation and tests
-- `knowledge/cart.md`
+- `coach/VOICE.md`
+- the current coach and LiveKit voice implementation, tests, and relevant knowledge files
 
-Inspect the current branch, working tree, recent commits, and current application structure. The last reported baseline was 32 passing offline tests, but verify the actual current state.
+Inspect the current branch, working tree, recent commits, and application structure.
 
-## Scope
+- This task must run only on `feature/voice-coach-improvements`.
+- The `ai-coordination` branch has already been merged into `main`.
+- The feature branch was created from the latest `main`.
+- Never make changes directly on `main`.
+- Do not overwrite, discard, or silently include unrelated user changes.
+- If the checked-out branch is not `feature/voice-coach-improvements`, or there are unrelated uncommitted changes, stop and report the blocker. Do not switch branches automatically.
+- Preserve existing CLI commands, CART knowledge, research documents, and architecture unless a concrete need for change is demonstrated.
 
-### 1. Repository and architecture inspection
-- Work only on `ai-coordination`.
-- Check branch and working-tree status before editing.
-- Preserve any existing user changes. If the branch is wrong or unrelated uncommitted changes are present, stop and report the blocker; do not switch branches or discard changes.
-- Identify the existing CART coach entry point, OpenAI integration, configuration loading, and reusable coaching functions.
-- Keep the implementation small and aligned with the current Python project.
+## Phase 1 — Establish a baseline and diagnose
 
-### 2. LiveKit voice agent
-- Use a currently supported, compatible LiveKit Agents Python SDK and documented APIs.
-- Connect the agent to the existing CART coaching logic rather than duplicating CART instructions or building a second coach.
-- Reuse the current OpenAI integration where practical, or document why a compatible LiveKit-supported provider path is preferable.
-- Explicitly configure the required language-model and speech input/output components. Do not assume LiveKit transport alone provides speech recognition or text-to-speech.
-- Keep the existing CLI and its commands working.
+Inspect the full path from user speech to spoken response:
+- speech endpoint detection / VAD;
+- speech-to-text;
+- coach/LLM processing;
+- text-to-speech;
+- audio playback and turn completion;
+- configuration and error handling.
 
-### 3. Minimal browser voice interface
-Provide the smallest usable browser interface needed to:
-- connect to a voice session;
-- request microphone permission and capture speech;
-- hear the agent's spoken response;
-- display connection/session status and useful errors;
-- disconnect cleanly.
+Measure the current latency at each stage where practical. Record the measurement method and environment. Separate measured facts from hypotheses; do not claim a root cause without evidence.
 
-Extend an existing frontend if one exists. If none exists, add only a minimal local interface and the smallest required backend/token endpoint. Do not build a separate chat product, elaborate dashboard, authentication system, or cloud deployment.
+## Phase 2 — Improve response latency
 
-### 4. CART coaching behavior and turn-taking
-Preserve Context → Adversity → Resolution → Takeaway and the existing coaching knowledge in `knowledge/cart.md`.
+Use the baseline to target actual bottlenecks. Instrument timings for the key stages and overall time-to-first-audio where feasible.
 
-The user wants to speak freely before receiving a response:
-- configure supported turn detection/endpointing and interruption behavior to avoid cutting off a user's thought;
-- do not treat every short pause as the end of a turn;
-- handle intentional user interruption gracefully;
-- avoid duplicate responses;
-- do not offer unsolicited feedback, rewrites, hints, or suggestions after every answer;
-- only provide feedback/refinement when the user asks for it, while preserving explicit CART navigation commands and the current coaching flow.
+Avoid unnecessary model calls and redundant processing. Tune endpointing only with care: do not cut the user off or treat every short pause as the end of a thought. Keep the implementation understandable and compatible with the existing stack. Do not introduce new paid services or switch providers without a demonstrated need.
 
-Make sensible configurable choices and document known limits. Do not claim turn-taking is perfect unless verified in a real session.
+Report before/after measurements under comparable conditions when possible. If comparable live measurements cannot be obtained, say so and provide the available evidence.
 
-### 5. Configuration and secrets
-- Inspect current .env loading and .gitignore before changing configuration.
-- Document the required LiveKit URL, API key, API secret, and any model/speech provider keys using the exact names required by the selected SDK.
-- Update `.env.example` and setup documentation as needed, with placeholders only.
-- Never overwrite the owner's local `.env`; never hardcode, print, or commit credentials.
-- If LiveKit credentials or provider configuration are unavailable in the agent environment, complete independent work and tests, then clearly list what the owner must configure. Never invent credentials or claim a live connection worked when it did not.
+## Phase 3 — Improve adaptive coaching intelligence
 
-### 6. Local setup and documentation
-Document exact macOS commands from the repository root to install dependencies and start the agent and frontend. Explain how the browser obtains a short-lived LiveKit access token without exposing the API secret to the browser.
+Continue using the existing `CoachApp`, CART flow (Context → Adversity → Resolution → Takeaway), and `knowledge/cart.md`. Do not create a second independent coaching brain or replace CART with a generic prompt.
 
-Document the selected architecture, speech/LLM providers, environment variables, local test procedure, any likely separate service/API usage charges, and troubleshooting. Do not deploy to cloud in SB-006.
+The coach should:
+- understand the user's immediate goal and current context;
+- ask relevant follow-up questions only when needed;
+- avoid repeating questions or advice already given;
+- let the user finish explaining their thoughts;
+- avoid generic or unsolicited feedback after every sentence/answer;
+- provide feedback, rewrites, or refinement when requested or at an appropriate coaching checkpoint;
+- adapt its response to interview practice, workplace conversations, presentations, and other communication scenarios;
+- preserve explicit CART navigation commands and current coaching behavior.
 
-### 7. Tests and validation
-- Preserve existing tests and CLI behavior.
-- Add offline tests for configuration validation, agent-to-CART integration, and token/session endpoint behavior where practical.
+Add or update focused tests for adaptive behavior and regression cases. Prefer small, testable changes over broad redesign.
+
+## Phase 4 — Improve voice quality and naturalness
+
+Inspect the existing LiveKit/OpenAI speech configuration and actual supported options. Improve naturalness, pacing, tone, and spoken response length where the current stack allows it.
+
+Keep voice responses concise but useful and context-aware. Avoid repetitive canned phrasing. Do not claim voice quality improved based only on configuration changes; identify what changed and whether it was verified in a real listening test. Do not expose secrets or add unnecessary providers/dependencies.
+
+## Phase 5 — Integrated reliability and testing
+
+Treat all four areas as one integrated deliverable. Validate interactions between latency, endpointing, coaching behavior, and audio output.
+
+- Preserve all existing tests and CLI behavior.
+- Add offline regression tests for the changed logic where practical.
 - Mock external LiveKit/OpenAI calls in automated tests; tests must not require paid API calls.
-- Run the complete offline test suite and any available lint/build checks.
-- Report the actual number of passing/failing tests.
-- If credentials and local services are available, attempt a real browser-to-agent voice test. Clearly distinguish unit tests, mocked tests, and real end-to-end testing. If end-to-end testing cannot be performed, say **not tested** and provide the exact owner steps needed to test it.
+- Run the full offline test suite and relevant lint/build checks available in the repository.
+- If local LiveKit services and credentials are available, attempt a real browser-to-agent voice session and record the result.
+- Clearly distinguish unit/offline tests from a real end-to-end test.
+- If live testing is unavailable, report **not tested** and give exact commands and steps for the owner to run locally.
+- Do not report a check as passing unless it actually ran and passed.
 
-### 8. Coordination report and Git workflow
-- Update `coordination/cursor-report.md` with changed files, architecture choices, commands run and actual results, real voice test status, assumptions, risks/blockers, commit SHA/URL, push status, and the recommended next step.
-- Update `coordination/project-state.md` to reflect only verified changes.
-- Do not change `knowledge/cart.md` or existing research documents unless a necessary issue is found; if so, explain it before making unrelated changes.
-- Review the final diff and ensure no secrets are staged.
-- Commit task-related changes and the coordination report together on `ai-coordination`, then push to `origin/ai-coordination` and verify the remote commit, following the repository's coordination workflow.
-- Do not merge to `main`.
-- Stop after SB-006. Do not start a follow-up task.
+## Phase 6 — Documentation and handoff
+
+Update relevant documentation, including `coordination/cursor-report.md` and `coordination/project-state.md`, based only on verified changes.
+
+The final report must include:
+1. Root causes found, with evidence.
+2. Files changed and why.
+3. Before/after latency measurements and measurement conditions, where available.
+4. Coaching behavior changes and tests.
+5. Voice configuration changes and whether voice quality was actually listened to/verified.
+6. Exact test commands and results, including pass/fail counts.
+7. Live end-to-end status: passed, failed, or not tested.
+8. Remaining limitations, assumptions, and risks.
+9. Exact local commands/steps to test on macOS.
+10. Commit SHA/URL and verified remote push status.
+
+Review the diff and ensure no credentials or local secrets are committed.
+
+Commit task-related code, documentation, and coordination report on `feature/voice-coach-improvements`. Push that feature branch to origin and verify the remote commit. Do not merge into `main` or any other branch. Stop after this task; do not start a follow-up task automatically.
 
 ## Acceptance criteria
 
-1. Existing text CLI still works and existing tests pass.
-2. A Python LiveKit voice agent can be started locally, subject to documented credentials.
-3. A browser can connect, use the microphone, and receive spoken agent responses when credentials/providers are configured.
-4. The voice agent uses the existing CART coach and knowledge rather than a duplicated generic coach.
-5. Turn-taking is configured to let the user finish speaking; unsolicited suggestions after each answer are avoided.
-6. The browser never receives the LiveKit API secret.
-7. Setup instructions are executable and secrets remain uncommitted.
-8. Offline tests pass, and real end-to-end voice status is reported truthfully.
-9. The coordination report and project state are updated, and the commit is pushed to `origin/ai-coordination`.
+- The changes are on `feature/voice-coach-improvements`, not `main`.
+- Existing CART knowledge and text CLI behavior are preserved.
+- The four requested areas are addressed as one integrated task.
+- Latency claims are backed by measurements or explicitly qualified.
+- Coaching changes have relevant regression coverage.
+- Voice changes and their verification status are clearly documented.
+- The full offline test suite is run and its actual result reported.
+- Real voice end-to-end status is reported truthfully.
+- Coordination documents are updated, the feature branch is pushed, and the commit is identified.
+- No merge into `main` is performed.
 
-Start with inspection, then implement the smallest viable local prototype. If any provider/API compatibility question arises, consult the SDK's current documentation rather than guessing.
+Start with repository and branch inspection, then establish the baseline before implementing changes. If blocked by branch state, local changes, unavailable services, or provider compatibility, report the specific blocker and continue only with independent safe work.
